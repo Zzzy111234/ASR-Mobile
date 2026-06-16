@@ -31,10 +31,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // ── 关键修改 1：再也不用纯代码硬写了，直接加载我们的新布局 ──
+        // 加载新布局
         setContentView(R.layout.activity_main)
 
-        // ── 关键修改 2：把新布局里的精美组件和后端的业务逻辑绑定起来 ──
+        // 绑定精美组件与后端业务逻辑
         setupViewsAndListeners()
         
         requestMicrophonePermissionIfNeeded()
@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
             selectModelFile() 
         }
 
-        // 3. 绑定内置轻量模型按钮（自动获取仓库里的第一个可用模型）
+        // 3. 绑定内置轻量模型按钮
         findViewById<Button>(R.id.btn_use_bundled).setOnClickListener { 
             val builtInModel = modelRepository.getBundledModels().firstOrNull()
             if (builtInModel != null) {
@@ -85,8 +85,7 @@ class MainActivity : AppCompatActivity() {
             runBenchmark() 
         }
 
-        // 💡 额外处理：原代码里其实有一个隐藏的“播放录音”功能。
-        // 如果你以后在 activity_main.xml 里加了一个 id 为 btn_play 的按钮，下面这行会自动生效，绝不崩溃
+        // 额外处理：原代码的“播放录音”功能
         findViewById<Button>(R.id.btn_play)?.setOnClickListener {
             playLatestRecording()
         }
@@ -96,7 +95,6 @@ class MainActivity : AppCompatActivity() {
     //  模型选择
     // ══════════════════════════════════════════
 
-    /** 选择内置模型：部署到运行时存储，标记为待加载 */
     private fun selectBundledModel(model: BundledModel) {
         updateStatus("Preparing ${model.displayName}...")
         selectedModelPath = null
@@ -113,7 +111,6 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    /** 从系统文件选择器选取外部模型文件 */
     private fun selectModelFile() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -142,7 +139,6 @@ class MainActivity : AppCompatActivity() {
     //  模型加载 / 推理 / 评测
     // ══════════════════════════════════════════
 
-    /** 加载当前选中的模型到 WhisperEngine（JNI -> whisper.cpp） */
     private fun loadSelectedModel() {
         val path = selectedModelPath
         if (path == null) {
@@ -209,7 +205,8 @@ class MainActivity : AppCompatActivity() {
                     release()
                     runOnUiThread { updateStatus("Playback finished.") }
                 }
-                setOnOnErrorListener { _, what, extra ->
+                // 🛠️ 修复点 1：去掉了多余的 "On"，改回正确的原生的 Android 监听器名
+                setOnErrorListener { _, what, extra ->
                     release()
                     runOnUiThread { updateStatus("Playback error: $what / $extra") }
                     true
@@ -229,7 +226,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         Thread {
-            val result = benchmarkRunner.benchmark(recording, selectedModelPath)
+            // 🛠️ 修复点 2：为 selectedModelPath 提供了 ?: "" 降级处理，防止因 Nullable 导致类型不匹配报错
+            val result = benchmarkRunner.benchmark(recording, selectedModelPath ?: "")
             runOnUiThread { metricsText.text = result.toDisplayText() }
         }.start()
     }
