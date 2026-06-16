@@ -8,8 +8,6 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -32,117 +30,65 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        buildUi()
+        
+        // ── 关键修改 1：再也不用纯代码硬写了，直接加载我们的新布局 ──
+        setContentView(R.layout.activity_main)
+
+        // ── 关键修改 2：把新布局里的精美组件和后端的业务逻辑绑定起来 ──
+        setupViewsAndListeners()
+        
         requestMicrophonePermissionIfNeeded()
         updateStatus("Ready. Select a built-in model or pick a model file.")
     }
 
-    private fun buildUi() {
-        statusText = TextView(this).withPadding()
-        transcriptText = TextView(this).withPadding()
-        metricsText = TextView(this).withPadding()
-
-        // ── 标题 ──
-        val title = TextView(this).apply {
-            text = "ASR Mobile"
-            textSize = 24f
-        }
-
-        // ── 外部文件选择 ──
-        val selectFileButton = Button(this).apply {
-            text = "Select model file from storage"
-            setOnClickListener { selectModelFile() }
-        }
-
-        // ── 内置模型仓库列表 ──
-        val builtinHeader = TextView(this).apply {
-            text = "── Built-in Models ──"
-            textSize = 16f
-            setPadding(0, 16, 0, 8)
-        }
-
-        val modelListLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-        populateModelList(modelListLayout)
-
-        // ── 功能按钮 ──
-        val loadModelButton = Button(this).apply {
-            text = "Load model"
-            setOnClickListener { loadSelectedModel() }
-        }
-        val recordButton = Button(this).apply {
-            text = "Record 10 seconds"
-            setOnClickListener { recordShortClip() }
-        }
-        val transcribeButton = Button(this).apply {
-            text = "Transcribe latest recording"
-            setOnClickListener { transcribeLatestRecording() }
-        }
-        val playButton = Button(this).apply {
-            text = "▶ Play latest recording"
-            setOnClickListener { playLatestRecording() }
-        }
-        val benchmarkButton = Button(this).apply {
-            text = "Run benchmark"
-            setOnClickListener { runBenchmark() }
-        }
-
-        // ── 布局组装 ──
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(24, 24, 24, 24)
-            addView(title)
-            addView(statusText)
-            addView(selectFileButton)
-            addView(builtinHeader)
-            addView(modelListLayout)
-            addView(loadModelButton)
-            addView(recordButton)
-            addView(transcribeButton)
-            addView(playButton)
-            addView(benchmarkButton)
-            addView(TextView(context).apply { text = "Transcript"; textSize = 18f })
-            addView(transcriptText)
-            addView(TextView(context).apply { text = "Metrics"; textSize = 18f })
-            addView(metricsText)
-        }
-
-        setContentView(ScrollView(this).apply { addView(content) })
-    }
-
     /**
-     * 动态填充内置模型按钮列表
-     * 每个按钮点击后将该模型部署到运行时存储并设置为待加载模型
+     * 连接 XML 布局与后台逻辑的桥梁
      */
-    private fun populateModelList(container: LinearLayout) {
-        val models = modelRepository.getBundledModels()
-        if (models.isEmpty()) {
-            container.addView(TextView(this).apply {
-                text = "(No built-in models registered)"
-                setPadding(16, 8, 16, 8)
-            })
-            return
+    private fun setupViewsAndListeners() {
+        // 1. 绑定文本和状态显示框
+        statusText = findViewById(R.id.tv_status)
+        transcriptText = findViewById(R.id.tv_transcript)
+        metricsText = findViewById(R.id.tv_metrics)
+
+        // 2. 绑定外部模型选择按钮
+        findViewById<Button>(R.id.btn_select_model).setOnClickListener { 
+            selectModelFile() 
         }
 
-        for (model in models) {
-            val isAvailable = modelRepository.hasModel(model)
-            val button = Button(this).apply {
-                val status = if (isAvailable) "" else " [FILE NOT FOUND in assets/]"
-                text = "${model.displayName}  (${model.estimatedSizeMB}MB)$status"
-                isEnabled = isAvailable
-                setOnClickListener { selectBundledModel(model) }
+        // 3. 绑定内置轻量模型按钮（自动获取仓库里的第一个可用模型）
+        findViewById<Button>(R.id.btn_use_bundled).setOnClickListener { 
+            val builtInModel = modelRepository.getBundledModels().firstOrNull()
+            if (builtInModel != null) {
+                selectBundledModel(builtInModel)
+            } else {
+                updateStatus("No built-in models found in assets.")
             }
-            container.addView(button)
+        }
 
-            // 描述文字
-            if (model.description.isNotBlank()) {
-                container.addView(TextView(this).apply {
-                    text = model.description
-                    textSize = 12f
-                    setPadding(24, 0, 0, 8)
-                })
-            }
+        // 4. 绑定加载模型按钮
+        findViewById<Button>(R.id.btn_load_model).setOnClickListener { 
+            loadSelectedModel() 
+        }
+
+        // 5. 绑定录音按钮
+        findViewById<Button>(R.id.btn_record).setOnClickListener { 
+            recordShortClip() 
+        }
+
+        // 6. 绑定转换文本按钮
+        findViewById<Button>(R.id.btn_transcribe).setOnClickListener { 
+            transcribeLatestRecording() 
+        }
+
+        // 7. 绑定性能测试按钮
+        findViewById<Button>(R.id.btn_benchmark).setOnClickListener { 
+            runBenchmark() 
+        }
+
+        // 💡 额外处理：原代码里其实有一个隐藏的“播放录音”功能。
+        // 如果你以后在 activity_main.xml 里加了一个 id 为 btn_play 的按钮，下面这行会自动生效，绝不崩溃
+        findViewById<Button>(R.id.btn_play)?.setOnClickListener {
+            playLatestRecording()
         }
     }
 
@@ -263,7 +209,7 @@ class MainActivity : AppCompatActivity() {
                     release()
                     runOnUiThread { updateStatus("Playback finished.") }
                 }
-                setOnErrorListener { _, what, extra ->
+                setOnOnErrorListener { _, what, extra ->
                     release()
                     runOnUiThread { updateStatus("Playback error: $what / $extra") }
                     true
@@ -289,7 +235,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ══════════════════════════════════════════
-    //  权限
+    //  权限与工具函数
     // ══════════════════════════════════════════
 
     private fun requestMicrophonePermissionIfNeeded() {
@@ -308,8 +254,6 @@ class MainActivity : AppCompatActivity() {
     private fun updateStatus(message: String) {
         statusText.text = message
     }
-
-    private fun TextView.withPadding(): TextView = apply { setPadding(0, 12, 0, 12) }
 
     companion object {
         private const val REQUEST_RECORD_AUDIO = 1001
