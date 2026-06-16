@@ -2,193 +2,164 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F7FA"
-    android:padding="16dp">
+    android:background="#F4F6F9"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="20dp">
 
         <TextView
-            android:id="@+id/titleTv"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ASR Mobile System"
-            android:textSize="24sp"
-            android:textStyle="bold"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:text="ASR Mobile"
             android:textColor="#1A1C1E"
-            android:gravity="center"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="24dp"/>
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:background="#E9EDF4"
+            android:padding="14dp"
+            android:text="Status: Initializing..."
+            android:textColor="#43474E"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Model Settings"
+            android:textColor="#1A1C1E"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btn_use_bundled"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginBottom="10dp"
+            android:text="Use Bundled Model"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btn_select_model"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginBottom="10dp"
+            android:text="Select External Model (.bin)"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btn_load_model"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginBottom="24dp"
+            android:text="Load Selected Model"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Voice Operations"
+            android:textColor="#1A1C1E"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#FFFFFF"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="模型配置 / Model Configuration"
-                android:textStyle="bold"
-                android:textColor="#333333"
-                android:textSize="15sp"
-                android:layout_marginBottom="12dp"/>
-
-            <Spinner
-                android:id="@+id/modelSpinner"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
 
             <Button
-                android:id="@+id/loadModelBtn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="加载语音模型 (Load Model)"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#FFFFFF"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="音频控制 / Audio Control"
-                android:textStyle="bold"
-                android:textColor="#333333"
-                android:textSize="15sp"
-                android:layout_marginBottom="12dp"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/recordBtn"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    android:text="录音 (Record)"/>
-
-                <Button
-                    android:id="@+id/playBtn"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    android:text="播放 (Play)"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#FFFFFF"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="语音识别 / ASR Inference &amp; Bench"
-                android:textStyle="bold"
-                android:textColor="#333333"
-                android:textSize="15sp"
-                android:layout_marginBottom="12dp"/>
+                android:id="@+id/btn_record"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="Record 10s"
+                android:textAllCaps="false" />
 
             <Button
-                android:id="@+id/transcribeBtn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="开始转换文字 (Transcribe)"/>
-
-            <Button
-                android:id="@+id/benchmarkBtn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="基准性能测试 (Benchmark)"/>
+                android:id="@+id/btn_play"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:text="Play Clip"
+                android:textAllCaps="false" />
         </LinearLayout>
 
-        <LinearLayout
+        <Button
+            android:id="@+id/btn_transcribe"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginBottom="10dp"
+            android:text="Transcribe Audio"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btn_benchmark"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginBottom="24dp"
+            android:text="Run Performance Benchmark"
+            android:textAllCaps="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:text="Transcription"
+            android:textColor="#1A1C1E"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_transcript"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:layout_marginBottom="20dp"
             android:background="#FFFFFF"
-            android:padding="16dp"
-            android:layout_marginBottom="24dp">
+            android:hint="Text transcript will display here..."
+            android:minLines="3"
+            android:padding="12dp"
+            android:textColor="#1A1C1E"
+            android:textColorHint="#8E9196"
+            android:textSize="15sp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="14dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:text="Benchmark Performance"
+            android:textColor="#1A1C1E"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="当前状态: "
-                    android:textStyle="bold"
-                    android:textColor="#333333"
-                    android:textSize="15sp"/>
-
-                <TextView
-                    android:id="@+id/statusTv"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Ready"
-                    android:textColor="#388E3C"
-                    android:textStyle="bold"
-                    android:textSize="15sp"/>
-
-                <ProgressBar
-                    android:id="@+id/progressBar"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:visibility="gone"
-                    style="?android:attr/progressBarStyleSmall"/>
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="识别文本结果 / Output Result:"
-                android:textStyle="bold"
-                android:textColor="#555555"
-                android:textSize="13sp"
-                android:layout_marginBottom="8dp"/>
-
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="140dp"
-                android:background="#F0F4F8"
-                android:padding="10dp">
-
-                <TextView
-                    android:id="@+id/resultTv"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="等待识别结果输出..."
-                    android:textColor="#2C3E50"
-                    android:textSize="14sp"
-                    android:lineSpacingMultiplier="1.2"/>
-            </ScrollView>
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tv_metrics"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="#FFFFFF"
+            android:hint="Performance metrics will display here..."
+            android:minLines="2"
+            android:padding="12dp"
+            android:textColor="#1A1C1E"
+            android:textColorHint="#8E9196"
+            android:textSize="14sp" />
 
     </LinearLayout>
 </ScrollView>
