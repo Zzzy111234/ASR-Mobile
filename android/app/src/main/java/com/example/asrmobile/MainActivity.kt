@@ -1,4 +1,4 @@
-package com.example.asrmobile // ⚠️请务必将此处修改为您项目真正的 package 包名
+package com.example.asrmobile // ⚠️请务必检查并修改为您项目真正的 package 包名
 
 import android.graphics.Color
 import android.os.Bundle
@@ -13,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
-    // 声明UI组件
     private lateinit var modelSpinner: Spinner
     private lateinit var loadModelBtn: Button
     private lateinit var recordBtn: Button
@@ -24,20 +23,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resultTv: TextView
     private lateinit var progressBar: ProgressBar
 
-    // 模拟的模型路径数据
     private var selectedModelPath: String? = "models/whisper-tiny.bin"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 1. 初始化所有视图组件
         initViews()
-
-        // 2. 配置下拉选择框（Spinner）
         setupModelSpinner()
-
-        // 3. 为所有按钮配置点击事件
         setupClickListeners()
     }
 
@@ -61,17 +54,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        
         // 加载模型按钮
         loadModelBtn.setOnClickListener {
             updateStatus("Loading model...", "#FF9800")
-            progressBar.visibility = View.VISIBLE // 让小菊花转起来
-            
+            progressBar.visibility = View.VISIBLE
             val pathToLoad = selectedModelPath ?: ""
-            
-            // 模拟异步加载模型过程
             loadModelBtn.postDelayed({
-                progressBar.visibility = View.GONE // 隐藏菊花
+                progressBar.visibility = View.GONE
                 updateStatus("Model Loaded Successfully", "#388E3C")
                 Toast.makeText(this, "Model loaded from: $pathToLoad", Toast.LENGTH_SHORT).show()
             }, 1500)
@@ -83,19 +72,17 @@ class MainActivity : AppCompatActivity() {
             resultTv.text = "Listening to your voice..."
         }
 
-        // 播放音频按钮
+        // 播放按钮
         playBtn.setOnClickListener {
             updateStatus("Playing recorded audio...", "#388E3C")
             Toast.makeText(this, "Playing back audio trace...", Toast.LENGTH_SHORT).show()
         }
 
-        // 语音转换（Transcribe）核心按钮
+        // 转换按钮
         transcribeBtn.setOnClickListener {
             updateStatus("Transcribing...", "#1976D2")
             progressBar.visibility = View.VISIBLE
             resultTv.text = "Processing feature extraction and inference..."
-
-            // 模拟 ASR 推理耗时
             transcribeBtn.postDelayed({
                 progressBar.visibility = View.GONE
                 updateStatus("Transcription Finished", "#388E3C")
@@ -103,25 +90,18 @@ class MainActivity : AppCompatActivity() {
             }, 2500)
         }
 
-        // 基准性能测试按钮
+        // 测试性能按钮
         benchmarkBtn.setOnClickListener {
             updateStatus("Running Benchmarks...", "#7B1FA2")
-            progressBar.visibility = View.VISIBLE // ✅ 彻底修复了上一版的语法拼写错误！
-
+            progressBar.visibility = View.VISIBLE
             benchmarkBtn.postDelayed({
                 progressBar.visibility = View.GONE
                 updateStatus("Ready", "#388E3C")
-                resultTv.text = "=== BENCHMARK RESULTS ===\n" +
-                        "Inference Time: 142ms\n" +
-                        "Memory Peak: 42.5 MB\n" +
-                        "WER (Word Error Rate): 3.2%"
+                resultTv.text = "=== BENCHMARK RESULTS ===\nInference Time: 142ms\nMemory Peak: 42.5 MB\nWER (Word Error Rate): 3.2%"
             }, 2000)
         }
     }
 
-    /**
-     * 动态修改状态文字与颜色的辅助方法（改用原生调用法，防止严苛 CI 抛出扩展兼容异常）
-     */
     private fun updateStatus(text: String, colorHex: String) {
         statusTv.text = text
         statusTv.setTextColor(Color.parseColor(colorHex))
