@@ -34,28 +34,22 @@ class MainActivity : AppCompatActivity() {
         // 加载前端 XML 布局
         setContentView(R.layout.activity_main)
 
-        // 绑定精美组件与后端业务逻辑
+        // 绑定组件与业务逻辑
         setupViewsAndListeners()
         
         requestMicrophonePermissionIfNeeded()
         updateStatus("Ready. Select a built-in model or pick a model file.")
     }
 
-    /**
-     * 连接 XML 布局与后台逻辑的桥梁
-     */
     private fun setupViewsAndListeners() {
-        // 1. 绑定文本和状态显示框
         statusText = findViewById(R.id.tv_status)
         transcriptText = findViewById(R.id.tv_transcript)
         metricsText = findViewById(R.id.tv_metrics)
 
-        // 2. 绑定外部模型选择按钮
         findViewById<Button>(R.id.btn_select_model).setOnClickListener { 
             selectModelFile() 
         }
 
-        // 3. 绑定内置轻量模型按钮
         findViewById<Button>(R.id.btn_use_bundled).setOnClickListener { 
             val builtInModel = modelRepository.getBundledModels().firstOrNull()
             if (builtInModel != null) {
@@ -65,35 +59,26 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 4. 绑定加载模型按钮
         findViewById<Button>(R.id.btn_load_model).setOnClickListener { 
             loadSelectedModel() 
         }
 
-        // 5. 绑定录音按钮
         findViewById<Button>(R.id.btn_record).setOnClickListener { 
             recordShortClip() 
         }
 
-        // 6. 绑定转换文本按钮
         findViewById<Button>(R.id.btn_transcribe).setOnClickListener { 
             transcribeLatestRecording() 
         }
 
-        // 7. 绑定性能测试按钮
         findViewById<Button>(R.id.btn_benchmark).setOnClickListener { 
             runBenchmark() 
         }
 
-        // 8. 绑定播放录音功能
         findViewById<Button>(R.id.btn_play)?.setOnClickListener {
             playLatestRecording()
         }
     }
-
-    // ══════════════════════════════════════════
-    //  模型选择
-    // ══════════════════════════════════════════
 
     private fun selectBundledModel(model: BundledModel) {
         updateStatus("Preparing ${model.displayName}...")
@@ -134,10 +119,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-    // ══════════════════════════════════════════
-    //  模型加载 / 推理 / 评测
-    // ══════════════════════════════════════════
 
     private fun loadSelectedModel() {
         val path = selectedModelPath
@@ -205,7 +186,7 @@ class MainActivity : AppCompatActivity() {
                     release()
                     runOnUiThread { updateStatus("Playback finished.") }
                 }
-                // 🛠️ 已修复：改回了正确的 Android 原生监听器名 setOnErrorListener
+                // ✅ 修复点 1：正确的原生 Android 监听器名
                 setOnErrorListener { _, what, extra ->
                     release()
                     runOnUiThread { updateStatus("Playback error: $what / $extra") }
@@ -226,15 +207,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         Thread {
-            // 🛠️ 已修复：为 selectedModelPath 提供了安全兜底，防止 Null 导致编译失败
+            // ✅ 修复点 2：添加了 ?: "" 防止 Nullable 编译失败
             val result = benchmarkRunner.benchmark(recording, selectedModelPath ?: "")
             runOnUiThread { metricsText.text = result.toDisplayText() }
         }.start()
     }
-
-    // ══════════════════════════════════════════
-    //  权限与工具函数
-    // ══════════════════════════════════════════
 
     private fun requestMicrophonePermissionIfNeeded() {
         if (!hasMicrophonePermission()) {
