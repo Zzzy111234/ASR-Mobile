@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // 加载新布局
+        // 加载前端 XML 布局
         setContentView(R.layout.activity_main)
 
         // 绑定精美组件与后端业务逻辑
@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             runBenchmark() 
         }
 
-        // 额外处理：原代码的“播放录音”功能
+        // 8. 绑定播放录音功能
         findViewById<Button>(R.id.btn_play)?.setOnClickListener {
             playLatestRecording()
         }
@@ -205,7 +205,7 @@ class MainActivity : AppCompatActivity() {
                     release()
                     runOnUiThread { updateStatus("Playback finished.") }
                 }
-                // 🛠️ 修复点 1：去掉了多余的 "On"，改回正确的原生的 Android 监听器名
+                // 🛠️ 已修复：改回了正确的 Android 原生监听器名 setOnErrorListener
                 setOnErrorListener { _, what, extra ->
                     release()
                     runOnUiThread { updateStatus("Playback error: $what / $extra") }
@@ -226,7 +226,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         Thread {
-            // 🛠️ 修复点 2：为 selectedModelPath 提供了 ?: "" 降级处理，防止因 Nullable 导致类型不匹配报错
+            // 🛠️ 已修复：为 selectedModelPath 提供了安全兜底，防止 Null 导致编译失败
             val result = benchmarkRunner.benchmark(recording, selectedModelPath ?: "")
             runOnUiThread { metricsText.text = result.toDisplayText() }
         }.start()
