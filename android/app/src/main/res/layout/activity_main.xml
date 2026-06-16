@@ -1,1 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8FAFC"
+    android:fillViewport="true">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ASR Mobile"
+                android:textColor="#1E293B"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Transcription finished."
+                android:textColor="#2563EB"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp"
+                android:textStyle="medium" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="模型管理 / MODEL SETUP"
+                android:textColor="#64748B"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <Button
+                    android:id="@+id/btn_select_model"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="选择模型"
+                    android:textSize="13sp"
+                    android:textColor="#1E293B"
+                    android:backgroundTint="#F1F5F9" />
+
+                <Button
+                    android:id="@+id/btn_use_bundled"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:text="内置轻量模型"
+                    android:textSize="13sp"
+                    android:textColor="#1E293B"
+                    android:backgroundTint="#F1F5F9" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_load_model"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:text="加载模型 (LOAD MODEL)"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#0F172A" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="语音控制 / CONTROL"
+                android:textColor="#64748B"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btn_record"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="🎙️ 开始录音 (10秒)"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#2563EB" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:weightSum="2">
+
+                <Button
+                    android:id="@+id/btn_transcribe"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="转换最新录音"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#3B82F6" />
+
+                <Button
+                    android:id="@+id/btn_benchmark"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:text="性能测试"
+                    android:textColor="#2563EB"
+                    android:backgroundTint="#EFF6FF" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="识别文本 (Transcript)"
+                android:textColor="#64748B"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#F8FAFC"
+                android:padding="14dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:orientation="vertical">
+                
+                <TextView
+                    android:id="@+id/tv_transcript"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="识别文字将在这里流式显示..."
+                    android:textColor="#1E293B"
+                    android:textSize="15sp"
+                    android:lineSpacingMultiplier="1.2" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="基准性能参数 (Metrics)"
+                android:textColor="#64748B"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tv_metrics"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Device Info..."
+                android:textColor="#475569"
+                android:textSize="13sp"
+                android:lineSpacingMultiplier="1.3" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
