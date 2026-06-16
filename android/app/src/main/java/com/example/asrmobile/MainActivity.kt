@@ -1,109 +1,237 @@
-package com.example.asrmobile // ⚠️请务必检查并修改为您项目真正的 package 包名
+package com.example.asrmobile
 
-import android.graphics.Color
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
-import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.ProgressBar
-import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
+    private val modelFileManager by lazy { ModelFileManager(this) }
+    private val modelRepository by lazy { ModelRepository(this) }
+    private val whisperEngine by lazy { WhisperEngine() }
+    private val audioRecorder by lazy { AudioRecorder(this) }
+    private val benchmarkRunner by lazy { BenchmarkRunner(this, whisperEngine) }
 
-    private lateinit var modelSpinner: Spinner
-    private lateinit var loadModelBtn: Button
-    private lateinit var recordBtn: Button
-    private lateinit var playBtn: Button
-    private lateinit var transcribeBtn: Button
-    private lateinit var benchmarkBtn: Button
-    private lateinit var statusTv: TextView
-    private lateinit var resultTv: TextView
-    private lateinit var progressBar: ProgressBar
+    private lateinit var statusText: TextView
+    private lateinit var transcriptText: TextView
+    private lateinit var metricsText: TextView
 
-    private var selectedModelPath: String? = "models/whisper-tiny.bin"
+    private var selectedModelPath: String? = null
+    private var latestRecording: File? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.super.onCreate(savedInstanceState)
+        super.onCreate(savedInstanceState)
+        
+        // 加载前端 XML 布局
         setContentView(R.layout.activity_main)
 
-        initViews()
-        setupModelSpinner()
-        setupClickListeners()
+        // 绑定组件与业务逻辑
+        setupViewsAndListeners()
+        
+        requestMicrophonePermissionIfNeeded()
+        updateStatus("Ready. Select a built-in model or pick a model file.")
     }
 
-    private fun initViews() {
-        modelSpinner = findViewById(R.id.modelSpinner)
-        loadModelBtn = findViewById(R.id.loadModelBtn)
-        recordBtn = findViewById(R.id.recordBtn)
-        playBtn = findViewById(R.id.playBtn)
-        transcribeBtn = findViewById(R.id.transcribeBtn)
-        benchmarkBtn = findViewById(R.id.benchmarkBtn)
-        statusTv = findViewById(R.id.statusTv)
-        resultTv = findViewById(R.id.resultTv)
-        progressBar = findViewById(R.id.progressBar)
-    }
+    private fun setupViewsAndListeners() {
+        statusText = findViewById(R.id.tv_status)
+        transcriptText = findViewById(R.id.tv_transcript)
+        metricsText = findViewById(R.id.tv_metrics)
 
-    private fun setupModelSpinner() {
-        val models = arrayOf("Whisper-Tiny (Recommended)", "Whisper-Base", "Custom ASR Model")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, models)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        modelSpinner.adapter = adapter
-    }
-
-    private fun setupClickListeners() {
-        // 加载模型按钮
-        loadModelBtn.setOnClickListener {
-            updateStatus("Loading model...", "#FF9800")
-            progressBar.visibility = View.VISIBLE
-            val pathToLoad = selectedModelPath ?: ""
-            loadModelBtn.postDelayed({
-                progressBar.visibility = View.GONE
-                updateStatus("Model Loaded Successfully", "#388E3C")
-                Toast.makeText(this, "Model loaded from: $pathToLoad", Toast.LENGTH_SHORT).show()
-            }, 1500)
+        findViewById<Button>(R.id.btn_select_model).setOnClickListener { 
+            selectModelFile() 
         }
 
-        // 录音按钮
-        recordBtn.setOnClickListener {
-            updateStatus("Recording audio...", "#D32F2F")
-            resultTv.text = "Listening to your voice..."
+        findViewById<Button>(R.id.btn_use_bundled).setOnClickListener { 
+            val builtInModel = modelRepository.getBundledModels().firstOrNull()
+            if (builtInModel != null) {
+                selectBundledModel(builtInModel)
+            } else {
+                updateStatus("No built-in models found in assets.")
+            }
         }
 
-        // 播放按钮
-        playBtn.setOnClickListener {
-            updateStatus("Playing recorded audio...", "#388E3C")
-            Toast.makeText(this, "Playing back audio trace...", Toast.LENGTH_SHORT).show()
+        findViewById<Button>(R.id.btn_load_model).setOnClickListener { 
+            loadSelectedModel() 
         }
 
-        // 转换按钮
-        transcribeBtn.setOnClickListener {
-            updateStatus("Transcribing...", "#1976D2")
-            progressBar.visibility = View.VISIBLE
-            resultTv.text = "Processing feature extraction and inference..."
-            transcribeBtn.postDelayed({
-                progressBar.visibility = View.GONE
-                updateStatus("Transcription Finished", "#388E3C")
-                resultTv.text = "Hello, welcome to my final project presentation. The automated speech recognition system is working robustly on this Android device."
-            }, 2500)
+        findViewById<Button>(R.id.btn_record).setOnClickListener { 
+            recordShortClip() 
         }
 
-        // 测试性能按钮
-        benchmarkBtn.setOnClickListener {
-            updateStatus("Running Benchmarks...", "#7B1FA2")
-            progressBar.visibility = View.VISIBLE
-            benchmarkBtn.postDelayed({
-                progressBar.visibility = View.GONE
-                updateStatus("Ready", "#388E3C")
-                resultTv.text = "=== BENCHMARK RESULTS ===\nInference Time: 142ms\nMemory Peak: 42.5 MB\nWER (Word Error Rate): 3.2%"
-            }, 2000)
+        findViewById<Button>(R.id.btn_transcribe).setOnClickListener { 
+            transcribeLatestRecording() 
+        }
+
+        findViewById<Button>(R.id.btn_benchmark).setOnClickListener { 
+            runBenchmark() 
+        }
+
+        findViewById<Button>(R.id.btn_play)?.setOnClickListener {
+            playLatestRecording()
         }
     }
 
-    private fun updateStatus(text: String, colorHex: String) {
-        statusTv.text = text
-        statusTv.setTextColor(Color.parseColor(colorHex))
+    private fun selectBundledModel(model: BundledModel) {
+        updateStatus("Preparing ${model.displayName}...")
+        selectedModelPath = null
+        Thread {
+            val result = runCatching { modelRepository.deployModel(model).absolutePath }
+            runOnUiThread {
+                result.onSuccess { path ->
+                    selectedModelPath = path
+                    updateStatus("Selected built-in model: ${model.displayName}")
+                }.onFailure {
+                    updateStatus("Failed to prepare model: ${it.message}")
+                }
+            }
+        }.start()
+    }
+
+    private fun selectModelFile() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+        startActivityForResult(intent, REQUEST_MODEL_FILE)
+    }
+
+    @Deprecated("Deprecated in AndroidX Activity Result API, but kept simple for this teaching scaffold.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_MODEL_FILE && resultCode == Activity.RESULT_OK) {
+            data?.data?.let { uri ->
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+                val path = modelFileManager.copyModelUriToAppStorage(uri).absolutePath
+                selectedModelPath = path
+                updateStatus("Selected external model file: $path")
+            }
+        }
+    }
+
+    private fun loadSelectedModel() {
+        val path = selectedModelPath
+        if (path == null) {
+            updateStatus("No model selected. Pick a built-in model or a model file first.")
+            return
+        }
+
+        updateStatus("Loading model...")
+        Thread {
+            val result = runCatching { whisperEngine.loadModel(path) }
+            runOnUiThread {
+                result.onSuccess { updateStatus("Model loaded successfully.") }
+                    .onFailure { updateStatus("Model load failed: ${it.message}") }
+            }
+        }.start()
+    }
+
+    private fun recordShortClip() {
+        if (!hasMicrophonePermission()) {
+            requestMicrophonePermissionIfNeeded()
+            return
+        }
+
+        updateStatus("Recording 10 seconds...")
+        Thread {
+            val recording = audioRecorder.recordBlocking(seconds = 10)
+            latestRecording = recording
+            runOnUiThread { updateStatus("Recording saved: ${recording.absolutePath}") }
+        }.start()
+    }
+
+    private fun transcribeLatestRecording() {
+        val recording = latestRecording
+        if (recording == null) {
+            updateStatus("No recording yet.")
+            return
+        }
+
+        updateStatus("Transcribing ${recording.name}...")
+        Thread {
+            val result = runCatching { whisperEngine.transcribe(recording.absolutePath) }
+            runOnUiThread {
+                result.onSuccess { transcriptText.text = it }
+                    .onFailure { transcriptText.text = "Transcription failed: ${it.message}" }
+                updateStatus("Transcription finished.")
+            }
+        }.start()
+    }
+
+    private fun playLatestRecording() {
+        val recording = latestRecording
+        if (recording == null || !recording.exists()) {
+            updateStatus("No recording yet.")
+            return
+        }
+
+        updateStatus("Playing ${recording.name}...")
+        MediaPlayer().apply {
+            try {
+                setDataSource(recording.absolutePath)
+                prepare()
+                start()
+                setOnCompletionListener {
+                    release()
+                    runOnUiThread { updateStatus("Playback finished.") }
+                }
+                // ✅ 修复点 1：正确的原生 Android 监听器名
+                setOnErrorListener { _, what, extra ->
+                    release()
+                    runOnUiThread { updateStatus("Playback error: $what / $extra") }
+                    true
+                }
+            } catch (e: Exception) {
+                release()
+                updateStatus("Playback failed: ${e.message}")
+            }
+        }
+    }
+
+    private fun runBenchmark() {
+        val recording = latestRecording
+        if (recording == null) {
+            updateStatus("Record a clip before benchmarking.")
+            return
+        }
+
+        Thread {
+            // ✅ 修复点 2：添加了 ?: "" 防止 Nullable 编译失败
+            val result = benchmarkRunner.benchmark(recording, selectedModelPath ?: "")
+            runOnUiThread { metricsText.text = result.toDisplayText() }
+        }.start()
+    }
+
+    private fun requestMicrophonePermissionIfNeeded() {
+        if (!hasMicrophonePermission()) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                REQUEST_RECORD_AUDIO
+            )
+        }
+    }
+
+    private fun hasMicrophonePermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+
+    private fun updateStatus(message: String) {
+        statusText.text = message
+    }
+
+    companion object {
+        private const val REQUEST_RECORD_AUDIO = 1001
+        private const val REQUEST_MODEL_FILE = 1002
     }
 }
